@@ -1,0 +1,23 @@
+Metrics Ingestion Layer
+
+Define a MetricExtractor interface.
+
+Provide a JavaMetricExtractor implementation (LOC, cyclomatic complexity, fanout, etc., using Java parser tooling).
+
+Register extractors per language (FileEntity.language).
+
+Repository Cloning & File Discovery
+
+Service in rosetta-services that clones a Git repo, iterates files, detects language, and feeds into extractors.
+
+Persistence Services
+
+MetricService for inserting/updating metric values.
+
+RepositoryService for storing repositories/files/commits/churn.
+
+CLI Commands (picocli or plain args)
+
+analyze-repo to run ingestion for a GitHub/GitLab URL.
+
+list-metrics to print metrics in DB.

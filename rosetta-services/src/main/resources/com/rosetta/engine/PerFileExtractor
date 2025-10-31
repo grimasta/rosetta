@@ -1,0 +1,9 @@
+com.rosetta.metrics.architectural.c_cpp.CCppCallsExtractor
+com.rosetta.metrics.architectural.java.JavaCallsExtractor
+com.rosetta.metrics.basics.c_cpp.CCppBasicComplexityExtractor
+com.rosetta.metrics.basics.java.JavaBasicComplexityExtractor
+com.rosetta.metrics.basics.text.TextLocExtractor
+com.rosetta.metrics.complexity.c_cpp.CCppMcCabeExtractor
+com.rosetta.metrics.complexity.java.JavaMcCabeExtractor
+com.rosetta.metrics.structural.c_cpp.CCppIndexCollector
+com.rosetta.metrics.structural.java.JavaIndexCollector
