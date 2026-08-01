@@ -4,12 +4,16 @@ package com.rosetta.metrics.structural.java;
 import com.rosetta.engine.AnalysisContext;
 import com.rosetta.engine.MetricSink;
 import com.rosetta.engine.PostProcessor;
+import com.rosetta.engine.MetricCategory;
+import com.rosetta.engine.MetricInfo;
 import com.rosetta.metrics.structural.java.JavaIndexCollector.Entry;
 
 import static com.rosetta.metrics.structural.java.JavaIndexCollector.BAG_KEY_INDEX;
 
 import java.util.*;
 
+@MetricCategory({"structural","fan"})
+@MetricInfo(names = {"fanout_internal","fanout_external","fanin_internal","fanin_external"}, description = "Fan-in / fan-out metrics per file")
 public class JavaFanInOutPostProcessor implements PostProcessor {
     @SuppressWarnings("unchecked")
     @Override

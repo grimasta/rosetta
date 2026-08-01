@@ -88,6 +88,7 @@ public class AnalyzeRepositoryService {
             final Path basePath = localPath.toPath();
             final java.util.List<Path> files;
             try (var stream = Files.walk(basePath)) {
+//            	TODO: create documentation on how to exclude files (e.g. via .rosettaignore or system props)
                 files = stream
                     .filter(Files::isRegularFile)
                     .filter(p -> !p.toString().contains(File.separator + ".git" + File.separator))
@@ -102,9 +103,9 @@ public class AnalyzeRepositoryService {
                     .collect(Collectors.toList());
             }
 
-            AnalysisContext ctx = new AnalysisContext(basePath, files, em, repo, scanCommit);
-            MetricSink sink = new DefaultMetricSink(em, repo, scanCommit);
-
+            AnalysisContext currentAnalysisContext = new AnalysisContext(basePath, files, em, repo, scanCommit);
+            MetricSink currentMetricSink = new DefaultMetricSink(em, repo, scanCommit);
+//        	TODO: explain what happens in the next two lines - how the engine discovers and loads metric extractors and post-processors, and how to include/exclude them via tags and system properties
             var perFile = new java.util.ArrayList<com.rosetta.engine.PerFileExtractor>();
             java.util.ServiceLoader.load(com.rosetta.engine.PerFileExtractor.class)
                     .forEach(perFile::add);
@@ -115,29 +116,43 @@ public class AnalyzeRepositoryService {
             var exclude = System.getProperty("metrics.exclude"); // e.g. "basics"
 
             java.util.function.Predicate<Object> byTag = o -> {
-                var pkg = o.getClass().getPackageName(); // com.rosetta.metrics.complexity.java
+                // Prefer annotation-based tagging (MetricCategory) when present. Fall back to package-name matching.
+                var cls = o.getClass();
+                var cat = cls.getAnnotation(com.rosetta.engine.MetricCategory.class);
                 if (include != null && !include.isBlank()) {
                     boolean ok = false;
                     for (var tag : include.split(",")) {
-                        if (pkg.contains(tag.trim())) { ok = true; break; }
+                        String t = tag.trim();
+                        if (t.isEmpty()) continue;
+                        if (cat != null) {
+                            for (var cval : cat.value()) if (cval.equalsIgnoreCase(t)) { ok = true; break; }
+                            if (ok) break;
+                        }
+                        // fallback: package name contains
+                        if (cls.getPackageName().contains(t)) { ok = true; break; }
                     }
                     if (!ok) return false;
                 }
                 if (exclude != null && !exclude.isBlank()) {
                     for (var tag : exclude.split(",")) {
-                        if (pkg.contains(tag.trim())) return false;
+                        String t = tag.trim();
+                        if (t.isEmpty()) continue;
+                        if (cat != null) {
+                            for (var cval : cat.value()) if (cval.equalsIgnoreCase(t)) return false;
+                        }
+                        if (cls.getPackageName().contains(t)) return false;
                     }
                 }
                 return true;
             };
 
-            perFile.removeIf(e -> !byTag.test(e));
-            post.removeIf(e -> !byTag.test(e));
 //            how to run:
 //            java -Dmetrics.include=complexity,structural -jar rosetta-cli/target/... analyze-repo https://github.com/...
-
             java.util.ServiceLoader.load(com.rosetta.engine.PostProcessor.class)
-                    .forEach(post::add);
+            .forEach(post::add);
+            perFile.removeIf(e -> !byTag.test(e));
+            post.removeIf(e -> !byTag.test(e));
+
 
             // (optionally) print what was loaded
             System.out.println("Loaded PerFile extractors: " +
@@ -146,7 +161,7 @@ public class AnalyzeRepositoryService {
                     post.stream().map(Object::getClass).map(Class::getSimpleName).toList());
 
             var engine = new com.rosetta.engine.AnalysisEngine(perFile, post);
-            engine.run(ctx, sink);
+            engine.run(currentAnalysisContext, currentMetricSink);
 
             em.getTransaction().commit();
         } finally {

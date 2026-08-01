@@ -23,10 +23,13 @@ public class CCppIndexCollector implements PerFileExtractor {
         boolean ext = fn.endsWith(".c") || fn.endsWith(".cc") || fn.endsWith(".cpp") || fn.endsWith(".cxx") || fn.endsWith(".c++") || fn.endsWith(".h") || fn.endsWith(".hh") || fn.endsWith(".hpp") || fn.endsWith(".hxx") || fn.endsWith(".h++");
         return ext && ("c".equalsIgnoreCase(language) || "cpp".equalsIgnoreCase(language) || "c-cpp".equalsIgnoreCase(language));
     }
-
-    private static String rel(java.nio.file.Path base, java.nio.file.Path file) {
-        try { return base.relativize(file).toString(); }
-        catch (Exception e) { return file.toString(); }
+    
+    private static String rel(Path base, Path file) {
+        try {
+            return base.relativize(file).toString();
+        } catch (Exception e) {
+            return file.toString();
+        }
     }
     
     @Override public Map<String, Double> extract(Path file, AnalysisContext ctx) throws Exception {

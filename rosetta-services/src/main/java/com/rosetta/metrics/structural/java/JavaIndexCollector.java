@@ -3,12 +3,16 @@ package com.rosetta.metrics.structural.java;
 
 import com.rosetta.engine.AnalysisContext;
 import com.rosetta.engine.PerFileExtractor;
+import com.rosetta.engine.MetricCategory;
+import com.rosetta.engine.MetricInfo;
 
 import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+@MetricCategory({"structural","index"})
+@MetricInfo(names = {}, description = "Index collector (stores structural index in analysis context)")
 public class JavaIndexCollector implements PerFileExtractor {
     public static final String BAG_KEY_INDEX = "java.index";
 

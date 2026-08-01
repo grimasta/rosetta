@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
         name = "rosetta",
         mixinStandardHelpOptions = true,
         version = "Rosetta 0.2.0",
-        subcommands = { AnalyzeRepo.class, ListMetrics.class }
+        subcommands = { AnalyzeRepo.class, ListMetrics.class, AvailableMetrics.class }
 )
 public class Main implements Callable<Integer> {
     public static void main(String[] args) {
@@ -32,13 +32,13 @@ class AnalyzeRepo implements Callable<Integer> {
     @CommandLine.Parameters(index = "0", description = "Git URL of the repository")
     String url;
 
-    @CommandLine.Option(names = "--project", description = "Project name (default: derived from repo)", required = false)
+    @CommandLine.Option(names = {"-o", "--project"}, description = "Project name (default: derived from repo)", required = false)
     String projectName;
 
-    @CommandLine.Option(names = "--user", description = "Username for private repo", required = false)
+    @CommandLine.Option(names = {"-u", "--user"}, description = "Username for private repo", required = false)
     String user;
 
-    @CommandLine.Option(names = "--token", description = "Token/password for private repo", required = false)
+    @CommandLine.Option(names = {"-t", "--token"}, description = "Token/password for private repo", required = false)
     String token;
 
     @Override public Integer call() throws Exception {
@@ -69,6 +69,53 @@ class ListMetrics implements Callable<Integer> {
         } finally {
             em.close();
         }
+        return 0;
+    }
+}
+
+@CommandLine.Command(name = "available-metrics", description = "Discover and list available metric extractors and post-processors on the classpath")
+class AvailableMetrics implements Callable<Integer> {
+
+    @CommandLine.Option(names = "--raw", description = "Show raw implementation class names", required = false)
+    boolean raw = false;
+
+    @Override public Integer call() {
+        var perFile = new java.util.ArrayList<com.rosetta.engine.PerFileExtractor>();
+        java.util.ServiceLoader.load(com.rosetta.engine.PerFileExtractor.class).forEach(perFile::add);
+
+        var post = new java.util.ArrayList<com.rosetta.engine.PostProcessor>();
+        java.util.ServiceLoader.load(com.rosetta.engine.PostProcessor.class).forEach(post::add);
+
+        System.out.println("Per-file extractors:");
+        for (var e : perFile) {
+            Class<?> c = e.getClass();
+            com.rosetta.engine.MetricCategory cat = c.getAnnotation(com.rosetta.engine.MetricCategory.class);
+            com.rosetta.engine.MetricInfo info = c.getAnnotation(com.rosetta.engine.MetricInfo.class);
+            String cats = (cat == null) ? "" : String.join(",", cat.value());
+            String names = (info == null) ? "" : String.join(",", info.names());
+            String desc = (info == null) ? "" : info.description();
+            if (raw) {
+                System.out.printf(" - %s%n", c.getName());
+            } else {
+                System.out.printf(" - %s [%s] -> %s %s%n", c.getSimpleName(), cats, names, desc.isEmpty() ? "" : "- " + desc);
+            }
+        }
+
+        System.out.println("Post-processors:");
+        for (var e : post) {
+            Class<?> c = e.getClass();
+            com.rosetta.engine.MetricCategory cat = c.getAnnotation(com.rosetta.engine.MetricCategory.class);
+            com.rosetta.engine.MetricInfo info = c.getAnnotation(com.rosetta.engine.MetricInfo.class);
+            String cats = (cat == null) ? "" : String.join(",", cat.value());
+            String names = (info == null) ? "" : String.join(",", info.names());
+            String desc = (info == null) ? "" : info.description();
+            if (raw) {
+                System.out.printf(" - %s%n", c.getName());
+            } else {
+                System.out.printf(" - %s [%s] -> %s %s%n", c.getSimpleName(), cats, names, desc.isEmpty() ? "" : "- " + desc);
+            }
+        }
+
         return 0;
     }
 }

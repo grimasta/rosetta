@@ -3,6 +3,8 @@ package com.rosetta.metrics.basics.text;
 
 import com.rosetta.engine.AnalysisContext;
 import com.rosetta.engine.PerFileExtractor;
+import com.rosetta.engine.MetricCategory;
+import com.rosetta.engine.MetricInfo;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -14,6 +16,8 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+@MetricCategory({"basics","loc","text"})
+@MetricInfo(names = {"LOC"}, description = "Lines of code for text files")
 public class TextLocExtractor implements PerFileExtractor {
 
     private static boolean looksBinary(Path file) {

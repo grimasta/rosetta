@@ -3,6 +3,8 @@ package com.rosetta.metrics.basics.java;
 
 import com.rosetta.engine.AnalysisContext;
 import com.rosetta.engine.PerFileExtractor;
+import com.rosetta.engine.MetricCategory;
+import com.rosetta.engine.MetricInfo;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -14,6 +16,8 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+@MetricCategory({"basics","complexity"})
+@MetricInfo(names = {"LOC","naive_complexity"}, description = "Line count and a naive complexity heuristic")
 public class JavaBasicComplexityExtractor implements PerFileExtractor {
     @Override
     public boolean supports(String language, Path file) {

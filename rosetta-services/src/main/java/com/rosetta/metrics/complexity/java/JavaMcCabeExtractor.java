@@ -13,6 +13,8 @@ import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.rosetta.engine.AnalysisContext;
 import com.rosetta.engine.PerFileExtractor;
+import com.rosetta.engine.MetricCategory;
+import com.rosetta.engine.MetricInfo;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -23,6 +25,8 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+@MetricCategory({"complexity"})
+@MetricInfo(names = {"mccabe_cyclomatic"}, description = "Cyclomatic complexity (McCabe)")
 public class JavaMcCabeExtractor implements PerFileExtractor {
 
     @Override
